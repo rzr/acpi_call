@@ -9,3 +9,10 @@ acpi-call (240611-1~oneiricubuntu1) oneiric; urgency=low
   * Initial Release on Ironhide
 
  -- Martin Juhl (MrMEEE) <mj@casalogic.dk>  Wed, 24 Aug 2011 11:31:30 +0200
+
+acpi-call (0.0.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Philippe Coval <rzr@gna.org>  Mon, 16 Jan 2012 21:33:09 +0100
+
