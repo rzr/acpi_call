@@ -55,6 +55,7 @@ state=255
 
 
 
+
 usage_()
 {
     cat<<EOF
@@ -94,7 +95,6 @@ watch_()
     watch '{ \dmesg | tail ; }'
 }
 
-
 mod_debian_()
 {
     #TODO
@@ -109,10 +109,9 @@ mod_()
     echo "module: $url"
 
     pwd
+    lsmod | { grep acpi_call && return 0 ; } || echo "not minaded"
 
-    lsmod | { grep acpi_call && return 0 ; } || echo "not loaded"
-
-#   modprobe -l | grep acpi_call || echo "not available"
+    modprobe -l  | grep acpi_call || echo "not available"
 
     kver="3.2.0-rc6lenovo-g470+"
     kver="$(uname -r)"
@@ -179,6 +178,7 @@ switch_()
 {
     log_d_ "switch: state=$state temp=$temp";
 
+
     [ "_$1" != "_$state" ] || return 0
 
     past=$(date +%s)
@@ -204,7 +204,6 @@ switch_()
 main_()
 {
     usage_
-
     [ "_root" = "_${USER}" ] || { sudo $0 ; return $?; }
 
     cat /proc/version
@@ -218,7 +217,6 @@ main_()
     prev=${temp}
 
     while true; do
-
 	[ -z $DEBUG ] || sensors
 	# hdd
 	[ -z $DEBUG ] || sudo hddtemp /dev/sda # 41C TZ=46
@@ -249,8 +247,6 @@ main_()
 
 	log_ "c=$temp f=$state o=$prev s=$time ($max*$timeon>$min*$timeoff+d=$diff/$step) ($low<$high<$crit)"
 
-	sleep $step ;
-
 #	echo "updating diff max variation ( $temp - $prev ) during time=$step"
 	prev=$(expr ${temp} - ${prev} || printf '')
 
@@ -258,7 +254,6 @@ main_()
 	[ $prev -lt $diff ] || diff=$prev
 
 	prev=$temp
-
     done
 }
 
