@@ -1,23 +1,27 @@
-acpi-call for Debian
---------------------
+tp-smapi for Debian
+-------------------
 
-Please see ./README for a description of the acpi-call software.
+WARNING! You can not use stock kernel HDAPS at the same time with tp-smapi!
+         This package builds an improved version of HDAPS, and replace the
+         one in the kernel.
 
-The Debian acpi-call source package provides two packages,
+If you have the stock kernel hdaps module loaded, unload it before loading
+tp-smapi, or you'll get errors.
 
- 1) acpi-call, which the provides the userspace daemon
- 2) acpi-call-source, which provides the source for the kernel modules
+This package only works with kernels >= 2.6.19.
 
-The acpi-call-source package can be used in several ways,
+The Debian tp-smapi-source package can be used in several ways,
+
+ - Using module-assistant(1) commands provided by the module-assistant Debian
+   package:
+
+	# module-assistant prepare tp-smapi
+	# module-assistant auto-install tp-smapi
 
  - Using the make-kpkg(1) command provided by the kernel-package Debian
-   package. This will produce a corresponding acpi-call-modules package for
-   the Debian kernel-image package that you are using. This is "the Debian
-   way". See the "modules_image" section of the make-kpkg(1) man page.
+   package. See the "modules_image" section of the make-kpkg(1) man page.
 
- - Changing to the /usr/src/modules/acpi-call/ directory and building as
-   the README file instructs using "make; make install". This will build
-   and install a module specific to the system you are building on and is
-   not under control of the packaging system.
+ - Unpacking /usr/src/tp-smapi.tar.bz2, compiling and installing the module
+   on your own.
 
- -- Philippe Coval <rzr@gna.org>  Mon, 16 Jan 2012 21:34:24 +0100
+ -- Evgeni Golov <sargentd@die-welt.net>  Fri, 08 Dec 2006 16:56:00 +0100

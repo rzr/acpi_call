@@ -3,27 +3,28 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-#include /usr/share/quilt/quilt.make
+CFLAGS ?= -Wall -g
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+else
+	CFLAGS += -O2
+endif
 
 # some default definitions, important!
 #
 # Name of the source package
 psource:=acpi-call-source
 
-# Name of the dkms package
-pdkms:=acpi-call-dkms
-
 # The short upstream name, used for the module source directory
 sname:=acpi-call
-
-sversion:=$(shell dpkg-parsechangelog|grep "^Version:"|cut -d" " -f2|rev|cut -d- -f2-|rev|cut -d':' -f2)
 
 ### KERNEL SETUP
 ### Setup the stuff needed for making kernel module packages
 ### taken from /usr/share/kernel-package/sample.module.rules
 
 # prefix of the target package name
-PACKAGE=acpi-call-modules
+PACKAGE=tp-smapi-modules
 # modifieable for experiments or debugging m-a
 MA_DIR ?= /usr/share/modass
 # load generic variable handling
@@ -52,58 +53,37 @@ kdist_clean: clean
 #
 ### end  KERNEL SETUP
 
-build:
+# the binary-modules rule is invoked by module-assistant while processing the
+# kdist* targets. It is called by module-assistant or make-kpkg and *not*
+# during a normal build
+binary-modules: prep-deb-files
+	dh_testroot
+	dh_clean -k
 
-clean: clean-patched
-clean-patched:
+	# Build the module
+	$(MAKE)
+
+	# Install the module
+	install -D -m 0644 acpi_call.ko debian/$(PACKAGE)-$(KVERS)/lib/modules/$(KVERS)/updates/dkms/acpi_call.ko
+
+	dh_installdocs README
+	dh_installchangelogs
+	dh_installexamples
+	dh_compress
+	dh_fixperms
+	dh_installmodules
+	dh_installdeb
+	dh_gencontrol -- -v$(VERSION)
+	dh_md5sums
+	dh_builddeb --destdir=$(DEB_DESTDIR)
+	dh_clean -k
+
+clean:
 	dh_testdir
+
+	# Cleaning package
+	$(MAKE) clean
 
 	dh_clean
 
-install: DH_OPTIONS=
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
-
-	# Create the directories to install the source into
-	dh_installdirs -p$(psource)  usr/src/modules/$(sname)/debian
-	dh_installdirs -p$(pdkms)  usr/src/$(sname)-$(sversion)
-
-	# Copy only the driver source to the proper locations
-	cp -a README Makefile *.c  debian/$(psource)/usr/src/modules/$(sname)
-	cp -a Makefile *.c debian/$(pdkms)/usr/src/$(sname)-$(sversion)
-
-	# Copy the needed debian/ pieces to the proper location
-	cp debian/*.modules.in* \
-		debian/$(psource)/usr/src/modules/$(sname)/debian
-	cp debian/control debian/changelog debian/copyright \
-		debian/README.Debian \
-		debian/compat debian/$(psource)/usr/src/modules/$(sname)/debian/
-	install -m 0755 debian/rules.modules debian/$(psource)/usr/src/modules/$(sname)/debian/rules
-	cd debian/$(psource)/usr/src && tar c modules | bzip2 -9 > $(sname).tar.bz2 && rm -rf modules
-
-	# Prepare dkms.conf from the dkms.conf.in template
-	sed "s/__VERSION__/$(sversion)/g" debian/dkms.conf.in > debian/$(pdkms)/usr/src/$(sname)-$(sversion)/dkms.conf
-
-	dh_install
-
-binary-arch: build install
-
-binary-indep: build install
-	dh_testdir
-	dh_testroot
-	dh_installdocs -A README
-	dh_installchangelogs
-	dh_install
-	dh_link
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install kdist kdist_configure kdist_image kdist_clean
+.PHONY: clean binary-modules kdist kdist_configure kdist_image kdist_clean

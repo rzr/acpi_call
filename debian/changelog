@@ -1,5 +1,11 @@
-acpi-call (0.0.0-1) unstable; urgency=low
+acpi-call (0.0.0-0) UNRELEASED; urgency=low
 
-  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * Non-maintainer upload.
 
- -- Philippe Coval <rzr@gna.org>  Mon, 16 Jan 2012 21:34:24 +0100
+ -- Philippe Coval <rzr@gna.org>  Mon, 16 Jan 2012 21:46:04 +0100
+
+acpi-call (240611-1~oneiricubuntu1) oneiric; urgency=low
+
+  * Initial Release on Ironhide
+
+ -- Martin Juhl (MrMEEE) <mj@casalogic.dk>  Wed, 24 Aug 2011 11:31:30 +0200
