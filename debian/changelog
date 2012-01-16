@@ -2,4 +2,4 @@ acpi-call (0.0.0-1) unstable; urgency=low
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
 
- -- Philippe Coval <rzr@gna.org>  Mon, 16 Jan 2012 21:33:09 +0100
+ -- Philippe Coval <rzr@gna.org>  Mon, 16 Jan 2012 21:34:24 +0100
