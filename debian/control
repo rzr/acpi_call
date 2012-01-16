@@ -2,15 +2,22 @@ Source: acpi-call
 Section: unknown
 Priority: extra
 Maintainer: Philippe Coval <rzr@gna.org>
-Build-Depends: debhelper (>= 8.0.0)
+Build-Depends: debhelper (>= 8.0.0), bzip2
 Standards-Version: 3.9.2
 Homepage: <insert the upstream URL, if relevant>
 #Vcs-Git: git://git.debian.org/collab-maint/acpi-call.git
 #Vcs-Browser: http://git.debian.org/?p=collab-maint/acpi-call.git;a=summary
 
-Package: acpi-call
+Package: acpi-call-utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: <insert up to 60 chars description>
  <insert long description, indented with spaces>
 
+Package: acpi-call-source
+Architecture: all
+Depends: module-assistant, debhelper (>= 7), make, bzip2
+Description: source for the acpi-call driver.
+ This package provides the source code for the acpi-call kernel modules.
+ The acpi-call package is also required in order to make use of these
+ modules. Kernel source or headers are required to compile these modules.

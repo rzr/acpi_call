@@ -1,14 +1,21 @@
 Source: acpi-call
-Section: kernel
+Section: unknown
 Priority: optional
-Maintainer: Martin Juhl <mj@casalogic.dk>
-Build-Depends: debhelper (>= 5)
-Standards-Version: 3.9.1
+Maintainer: Philippe Coval <rzr@gna.org>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.9.2
 
 Package: acpi-call-modules-_KVERS_
 Architecture: any
-Depends: linux-modules-_KVERS_ | linux-image-_KVERS_
 Provides: acpi-call-modules
-Suggests: sysfsutils
-Description: Acpi-call kernel module 
- Acpi-call kernel module for enabling/disabling graphics cards.
+Description: acpi-call modules for Linux (kernel _KVERS_).
+ This package contains the set of loadable kernel modules for the
+ <description>.
+ .
+ This package contains the compiled kernel modules for _KVERS_
+ .
+ If you have compiled your own kernel, you will most likely need to build
+ your own acpi-call-modules. The acpi-call-source package has been
+ provided for use with the Debian's module-assistant or kernel-package
+ utilities to produce a version of acpi-call-modules for your kernel.
+
