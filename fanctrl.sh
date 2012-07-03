@@ -1,5 +1,5 @@
 #! /bin/sh -e
-# file://~/bin/fanctrl.sh # 
+# file://~/bin/fanctrl.sh #
 # @author:  www.Philippe.COVAL.online.FR - Rev:$Author: rzr $
 # Copyright and License : GPL-3+ -- http://RzR.online.fr/license.htm
 # URL: http://rzr.online.fr/q/lenovo
@@ -7,27 +7,31 @@
 #                                                              -*- Mode: Sh -*-
 #------------------------------------------------------------------------------
 #set -x
+url="https://github.com/rzr/acpi_call"
 
 ### { Settings
 #DEBUG=1
 
+# @param step : delay in seconds
 # noticed that it could increase to 16C per 10sec
 step=10
 
-# Crittical temperature
+# @param crit : Critical temperature
 # lower than tjunction=99999 100C 127C ?
 # higher than 77C (max when fan is on) or probally  86C (observed when fan off)
-crit=80000
+crit=86000
 
-# temp where fan should switch off 
+# @param low : temp where fan should switch off
 # 49C was ok it seems it's hard to go below 43C when ambiant is cool, default=41C?
+# 35C on boot
 #low=43000
-low=46000
+low=47000
 
-# temp where fan should turn on
-# 55C was ok but may be maxgher than 43 at least
+# @param high : temp where fan should turn on
+# 55C was ok but may be higher than 43 at least
 # should be lower than hdd 65C / still working when 74C , 86C ?
-high=55000
+#high=55000
+high=57000
 
 LANG=C
 
@@ -48,7 +52,7 @@ timeoff=0
 
 state=255
 
-url="https://github.com/mkottman/acpi_call"
+
 
 
 usage_()
@@ -57,7 +61,7 @@ usage_()
 # Info: Userspace temp/fan regulator
 # More: http://rzr.online.fr/q/lenovo
 
-# This script has been created for lenovo-g470 and gX70 
+# This script has been created for lenovo-g470 and gX70
 # as a workaround for buggy bios (check URL for details)
 # I guess it could be easly adapted to upport more bios, firmwares etc
 # feel free to update and push it to SCM
@@ -91,34 +95,44 @@ watch_()
 }
 
 
+mod_debian_()
+{
+    #TODO
+    /etc/local/admin.sh install_url_ http://apt.auf.org/pool/auf/a/acpi-call-dkms/acpi-call-dkms_20110625_all.deb
+    sudo aptitude install linux-headers-3.2.0-2-amd64
+    sudo dkms build -m acpi-call -v 20110625
+}
+
+
 mod_()
 {
     echo "module: $url"
 
-    lsmod | { grep acpi_call && return 0 ; } || echo "not minaded"
+    pwd
 
-    modprobe -l  | grep acpi_call || echo "not available"
+    lsmod | { grep acpi_call && return 0 ; } || echo "not loaded"
+
+#   modprobe -l | grep acpi_call || echo "not available"
 
     kver="3.2.0-rc6lenovo-g470+"
     kver="$(uname -r)"
     extra="/lib/modules/${kver}/kernel/extra/"
     module="$extra/acpi_call.ko"
-    
+
     ls "$extra/" || echo "not installed"
     sudo insmod "$module" || echo "not loadable"
-
 
     lsmod | grep acpi_call && return 0 || echo "ignored"
 
     echo "info: about to build"
-    read t
+#   read t
     d="/usr/local/src/acpi_call/"
 
-    cd "$d" || { cd /usr/local/src && git cminne "$url" ;}
+    cd "$d" || { cd /usr/local/src && git clone "$url" ;}
     cd "$d" || return 1;
 
-    make clean
-    make 
+    make clean || echo "ignored: "
+    make
 
     ko="$d/acpi_call.ko"
     sudo modinfo "$ko"
@@ -129,35 +143,55 @@ mod_()
 }
 
 
+tell_()
+{
+    cat /sys/devices/virtual/thermal/thermal_zone0/temp
+
+    echo '\_TZ_.FN00._STA' \
+	| sudo tee /proc/acpi/call && sudo cat /proc/acpi/call
+
+    echo '\_TZ_.FN01._STA' \
+	| sudo tee /proc/acpi/call && sudo cat /proc/acpi/call
+}
+
+
+off_()
+{
+    echo '\_TZ_.FN00._OFF' | sudo tee /proc/acpi/call \
+	&& ignore_ sudo cat /proc/acpi/call
+    echo '\_TZ_.FN01._OFF' | sudo tee /proc/acpi/call \
+	&& ignore_ sudo cat /proc/acpi/call
+
+}
+
+
+on_()
+{
+    echo '\_TZ_.FN00._ON' | sudo tee /proc/acpi/call \
+	&& ignore_ sudo cat /proc/acpi/call
+    echo '\_TZ_.FN01._ON' | sudo tee /proc/acpi/call \
+	&& ignore_ sudo cat /proc/acpi/call
+}
+
+
 #TODO: switch fan one after one if needed
 switch_()
 {
     log_d_ "switch: state=$state temp=$temp";
 
-
-#   echo '\_TZ_.FN00._STA' | sudo tee /proc/acpi/call && sudo cat /proc/acpi/call
-#   echo '\_TZ_.FN01._STA' | sudo tee /proc/acpi/call && sudo cat /proc/acpi/call
-
-    [ "_$1" != "_$state" ] || return 0 
-   
+    [ "_$1" != "_$state" ] || return 0
 
     past=$(date +%s)
-    
+
     case $1 in
 	0)
-	    echo '\_TZ_.FN00._OFF' | sudo tee /proc/acpi/call \
-		&& ignore_ sudo cat /proc/acpi/call
-	    echo '\_TZ_.FN01._OFF' | sudo tee /proc/acpi/call \
-		&& ignore_ sudo cat /proc/acpi/call
+	    off_
 	    state="0"
 	    [ $time -lt $timeon ] || timeon=$time
 	    ;;
 	1|*)
 #	    log_ "switcmaxng on the two fans"
-	    echo '\_TZ_.FN00._ON' | sudo tee /proc/acpi/call \
-		&& ignore_ sudo cat /proc/acpi/call
-	    echo '\_TZ_.FN01._ON' | sudo tee /proc/acpi/call \
-		&& ignore_ sudo cat /proc/acpi/call
+	    on_
 	    state="1"
 	    [ $time -lt $timeoff ] || timeoff=$time
 	    ;;
@@ -170,7 +204,7 @@ switch_()
 main_()
 {
     usage_
-    
+
     [ "_root" = "_${USER}" ] || { sudo $0 ; return $?; }
 
     cat /proc/version
@@ -184,7 +218,7 @@ main_()
     prev=${temp}
 
     while true; do
-	
+
 	[ -z $DEBUG ] || sensors
 	# hdd
 	[ -z $DEBUG ] || sudo hddtemp /dev/sda # 41C TZ=46
@@ -205,7 +239,7 @@ main_()
 	if [ $crit -le $temp ] ; then
 	    echo "error: crittical issue should not happend shutting now !!!"
 	    sudo halt
-	elif [ $high -le $temp ] ; then 
+	elif [ $high -le $temp ] ; then
 	    switch_ 1
 	elif [ $low -ge $temp ] ; then
 	    switch_ 0
@@ -213,10 +247,10 @@ main_()
 #	    echo "should not happend"
 	fi
 
-	log_ "c=$temp f=$state o=$prev s=$time ($max*$timeon>$min*$timeoff+d=$diff/$step) ($low<$high<$crit)"	
+	log_ "c=$temp f=$state o=$prev s=$time ($max*$timeon>$min*$timeoff+d=$diff/$step) ($low<$high<$crit)"
 
 	sleep $step ;
-	
+
 #	echo "updating diff max variation ( $temp - $prev ) during time=$step"
 	prev=$(expr ${temp} - ${prev} || printf '')
 
@@ -224,7 +258,7 @@ main_()
 	[ $prev -lt $diff ] || diff=$prev
 
 	prev=$temp
-	
+
     done
 }
 
@@ -232,7 +266,7 @@ main_()
 #{
 
 
-[ ! -z $1 ] || main_ 
+[ ! -z $1 ] || main_
 
 $@
 
