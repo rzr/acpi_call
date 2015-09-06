@@ -1,2 +1,2 @@
-acpi-call-source_0.0.0-0_all.deb kernel optional
-acpi-call-dkms_0.0.0-0_all.deb kernel optional
+acpi-call-utils_0.0.0-0_amd64.deb unknown extra
+acpi-call-source_0.0.0-0_all.deb unknown extra
